@@ -14,14 +14,48 @@ local Shapes = {
 
 local selected_shape = Shapes.CUBE
 
-local function drawCube(x, y, color)
-  local len = 5
+local function drawStraightLine(x, y, len, color, direction)
+  for i=1,len do
+    if direction == "vertical" then
+      app.activeImage:putPixel(x, y+i, color)
+    end
+    if direction == "horizontal" then
+      app.activeImage:putPixel(x+i, y, color)
+    end
+  end
+end
+
+local function isoLine(x, y, len, color, direction)
   for i=0,len do
     x1 = i*2
     x2 = x1+1
-    app.activeImage:putPixel(x+x1, y+i, color)
-    app.activeImage:putPixel(x+x2, y+i, color)
+    if direction == "downRight" then
+      app.activeImage:putPixel(x+x1, y+i, color)
+      app.activeImage:putPixel(x+x2, y+i, color)
+    elseif direction == "downLeft" then
+      app.activeImage:putPixel(x-x1, y+i, color)
+      app.activeImage:putPixel(x-x2, y+i, color)
+    elseif direction == "upRight" then
+      app.activeImage:putPixel(x+x1, y-i, color)
+      app.activeImage:putPixel(x+x2, y-i, color)
+    elseif direction == "upLeft" then
+      app.activeImage:putPixel(x-x1, y-i, color)
+      app.activeImage:putPixel(x-x2, y-i, color)
+    end
   end
+end
+
+local function drawCube(x, y, z, color)
+  local centerX = math.floor(app.activeSprite.width/2)
+  local centerY = math.floor(app.activeSprite.height/2)
+  drawStraightLine(centerX, centerY, z, color, "vertical") --middle
+  drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") --left
+  drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") --right
+  isoLine(centerX, centerY, x, color, "upRight")
+  isoLine(centerX, centerY + z, y, color, "upLeft")
+  -- isoLine(x, y, z, color, "downLeft")
+  -- isoLine(x, y, z, color, "upRight")
+  -- isoLine(x, y, z, color, "upLeft")
 end
 
 local function newLayer(name)
@@ -49,11 +83,10 @@ dlg:separator{ text="Colors:" }
           local data = dlg.data
           app.transaction(function()
             newLayer("Cube("..data.xSize.." "..data.ySize.." "..data.zSize..")")
-            drawCube(data.xSize, data.ySize, data.color)
+            drawCube(data.xSize, data.ySize, data.zSize, data.color)
           end)
           app.refresh()
         end
-      }
-dlg:show()
+}
 
-print("Selected shape is: " .. selected_shape)
+dlg:show()
