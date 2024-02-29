@@ -17,6 +17,7 @@ local centerY = math.floor(app.activeSprite.height/2)
 
 local selected_shape = Shapes.CUBE
 local leftMiddle = true
+local createdLayers = {}
 local data = {}
 
 local function drawStraightLine(x, y, len, color, direction)
@@ -87,7 +88,15 @@ local function newLayer(name)
   layer = sprite:newLayer()
   layer.name = name
   sprite:newCel(layer, 1)
+  table.insert(createdLayers, layer)
   return layer
+end
+
+local function undoLastLayerCreation()
+  if #createdLayers > 0 then
+    local lastLayer = table.remove(createdLayers)
+    sprite:deleteLayer(lastLayer)
+  end
 end
 
 dlg:separator{ text="Shapes" }
@@ -117,6 +126,18 @@ dlg:separator{ text="Actions" }
         selected=not leftMiddle,
         onclick=function() leftMiddle = false end
     }
+
+:button {
+  id="undo",
+  text="Undo",
+  onclick=function()
+    undoLastLayerCreation()
+    app.refresh()
+  end,
+  enabled=function()
+    return #createdLayers > 0
+  end
+}
 
 :button {id="submit", text="Add Shape",onclick=function()
           data = dlg.data
