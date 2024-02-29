@@ -56,11 +56,14 @@ local function drawCube(x, y, z, color)
   drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") --left
   drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") --right
   isoLine(centerX - 1, centerY, x, color, "upRight") -- top right
-  isoLine(centerX, centerY, x, color, "upLeft") -- top left
-
-
+  isoLine(centerX, centerY, y, color, "upLeft") -- top left
   isoLine(centerX, centerY + z, y, color, "upLeft") -- bottom left
   isoLine(centerX - 1, centerY + z, x, color, "upRight") -- bottom right
+  isoLine(centerX-y*2-1, centerY-y, x, color, "upRight")
+  isoLine(centerX+x*2, centerY-x, y, color, "upLeft")
+
+
+
   -- isoLine(x, y, z, color, "upRight")
   -- isoLine(x, y, z, color, "upLeft")
 end
@@ -87,8 +90,19 @@ dlg:separator{ text="Colors:" }
     :color {id="color", label="Stroke:", color = app.fgColor}
 
 dlg:separator{ text="Actions" }
-    :radio {id="left", label="Middle Line: ", text="Left", selected=leftMiddle}
-    :radio {id="right", text="Right", selected=not leftMiddle}
+    :radio {
+        id="left", 
+        label="Middle Line: ", 
+        text="Left", 
+        selected=leftMiddle, 
+        onclick=function() leftMiddle = true end
+    }
+    :radio {
+        id="right", 
+        text="Right", 
+        selected=not leftMiddle, 
+        onclick=function() leftMiddle = false end
+    }
 
 :button {id="submit", text="Add Shape",onclick=function()
           local data = dlg.data
