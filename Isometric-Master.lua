@@ -12,8 +12,12 @@ local Shapes = {
   RAMP = "Ramp"
 }
 
+local centerX = math.floor(app.activeSprite.width/2)
+local centerY = math.floor(app.activeSprite.height/2)
+
 local selected_shape = Shapes.CUBE
 local leftMiddle = true
+local data = {}
 
 local function drawStraightLine(x, y, len, color, direction)
   local drawFuncs = {
@@ -28,25 +32,28 @@ local function drawStraightLine(x, y, len, color, direction)
   end
 end
 
-local function fillSquare()
-  local squareStartX = 15
-  local squareStartY = 10
 
-  -- Choose a color for the fill
-  local fillColor = Color{ r=255, g=0, b=0 } -- Red
+local function fillSquare(x, y, color)
+  local fillPoint = Point{ x, y }
 
-  -- Choose a point within the square to start the fill
-  local fillStartPoint = Point{ x=squareStartX + 1, y=squareStartY + 1 }
-
-  -- Use the paint bucket tool to fill the square
   app.useTool{
     tool="paint_bucket",
-    color=fillColor,
-    points={ fillStartPoint },
-    cel=app.activeCel, -- Use the currently active cel
-    layer=app.activeLayer, -- Use the currently active layer
-    frame=app.activeFrame, -- Use the currently active frame
+    color=color,
+    points={ fillPoint },
+    cel=app.activeCel,
+    layer=app.activeLayer,
+    frame=app.activeFrame,
   }
+end
+
+local function colorCube(x, y, z)
+  local red = Color{ r=255, g=0, b=0 }
+  local green = Color{ r=0, g=255, b=0 }
+  local blue = Color{ r=0, g=0, b=255 }
+
+  fillSquare(centerX, centerY - 1, red) -- Top
+  fillSquare((centerX-y*2-1) + 1, (centerY-y) + 1, green) -- Left
+  fillSquare(centerX+x*2-1, centerY-x + 1, blue) -- Right
 end
 
 local function isoLine(x, y, len, color, direction)
@@ -59,8 +66,6 @@ local function isoLine(x, y, len, color, direction)
 end
 
 local function drawCube(x, y, z, color)
-  local centerX = math.floor(app.activeSprite.width/2)
-  local centerY = math.floor(app.activeSprite.height/2)
   local offset = leftMiddle and -1 or 0
 
   --- Straight lines
@@ -75,8 +80,6 @@ local function drawCube(x, y, z, color)
   isoLine(centerX, centerY, y, color, "upLeft") -- Middle Left
   isoLine(centerX, centerY + z, y, color, "upLeft") -- Bottom Left
   isoLine(centerX - 1, centerY + z, x, color, "upRight") -- Bottom Right
-
-  fillSquare()
 end
 
 local function newLayer(name)
@@ -116,10 +119,11 @@ dlg:separator{ text="Actions" }
     }
 
 :button {id="submit", text="Add Shape",onclick=function()
-          local data = dlg.data
+          data = dlg.data
           app.transaction(function()
             newLayer("Cube("..data.xSize.." "..data.ySize.." "..data.zSize..")")
             drawCube(data.xSize, data.ySize, data.zSize, data.color)
+            colorCube(data.xSize, data.ySize, data.zSize, data.color)
           end)
           app.refresh()
         end
