@@ -16,35 +16,24 @@ local selected_shape = Shapes.CUBE
 local leftMiddle = true
 
 local function drawStraightLine(x, y, len, color, direction)
+  local drawFuncs = {
+    vertical = function(i) app.activeImage:putPixel(x, y+i, color) end,
+    horizontal = function(i) app.activeImage:putPixel(x+i, y, color) end
+  }
+
+  local drawFunc = drawFuncs[direction]
+
   for i=1,len do
-    if direction == "vertical" then
-      app.activeImage:putPixel(x, y+i, color)
-    end
-    if direction == "horizontal" then
-      app.activeImage:putPixel(x+i, y, color)
-    end
+    drawFunc(i)
   end
 end
 
 local function isoLine(x, y, len, color, direction)
+  local step = direction == "upRight" and 1 or -1
   for i=0,len do
-    x1 = i*2
-    x2 = x1+1
-    if direction == "downRight" then
-      app.activeImage:putPixel(x+x1, y+i, color)
-      app.activeImage:putPixel(x+x2, y+i, color)
-    elseif direction == "downLeft" then
-      app.activeImage:putPixel(x-x1, y+i, color)
-      app.activeImage:putPixel(x-x2, y+i, color)
-    elseif direction == "upRight" then
-      app.activeImage:putPixel(x+x1, y-i, color)
-      -- if ((i ~= len) or (i > len)) then
-      app.activeImage:putPixel(x+x2, y-i, color)
-      -- end
-    elseif direction == "upLeft" then
-      app.activeImage:putPixel(x-x1, y-i, color)
-      app.activeImage:putPixel(x-x2, y-i, color)
-    end
+    local baseX = x + i*2*step
+    app.activeImage:putPixel(baseX, y-i, color)
+    app.activeImage:putPixel(baseX + step, y-i, color)
   end
 end
 
@@ -52,20 +41,19 @@ local function drawCube(x, y, z, color)
   local centerX = math.floor(app.activeSprite.width/2)
   local centerY = math.floor(app.activeSprite.height/2)
   local offset = leftMiddle and -1 or 0
-  drawStraightLine(centerX + offset, centerY, z, color, "vertical") --middle
-  drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") --left
-  drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") --right
-  isoLine(centerX - 1, centerY, x, color, "upRight") -- top right
-  isoLine(centerX, centerY, y, color, "upLeft") -- top left
-  isoLine(centerX, centerY + z, y, color, "upLeft") -- bottom left
-  isoLine(centerX - 1, centerY + z, x, color, "upRight") -- bottom right
-  isoLine(centerX-y*2-1, centerY-y, x, color, "upRight")
-  isoLine(centerX+x*2, centerY-x, y, color, "upLeft")
 
+  --- Straight lines
+  drawStraightLine(centerX + offset, centerY, z, color, "vertical") -- Middle
+  drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") -- Left
+  drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") -- Right
 
-
-  -- isoLine(x, y, z, color, "upRight")
-  -- isoLine(x, y, z, color, "upLeft")
+  --- Diagonal lines
+  isoLine(centerX-y*2-1, centerY-y, x, color, "upRight") -- Top Left
+  isoLine(centerX+x*2, centerY-x, y, color, "upLeft") -- Top Right
+  isoLine(centerX - 1, centerY, x, color, "upRight") -- Middle Right
+  isoLine(centerX, centerY, y, color, "upLeft") -- Middle Left
+  isoLine(centerX, centerY + z, y, color, "upLeft") -- Bottom Left
+  isoLine(centerX - 1, centerY + z, x, color, "upRight") -- Bottom Right
 end
 
 local function newLayer(name)
@@ -91,16 +79,16 @@ dlg:separator{ text="Colors:" }
 
 dlg:separator{ text="Actions" }
     :radio {
-        id="left", 
-        label="Middle Line: ", 
-        text="Left", 
-        selected=leftMiddle, 
+        id="left",
+        label="Middle Line: ",
+        text="Left",
+        selected=leftMiddle,
         onclick=function() leftMiddle = true end
     }
     :radio {
-        id="right", 
-        text="Right", 
-        selected=not leftMiddle, 
+        id="right",
+        text="Right",
+        selected=not leftMiddle,
         onclick=function() leftMiddle = false end
     }
 
