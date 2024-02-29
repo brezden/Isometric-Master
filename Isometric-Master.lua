@@ -28,6 +28,27 @@ local function drawStraightLine(x, y, len, color, direction)
   end
 end
 
+local function fillSquare()
+  local squareStartX = 15
+  local squareStartY = 10
+
+  -- Choose a color for the fill
+  local fillColor = Color{ r=255, g=0, b=0 } -- Red
+
+  -- Choose a point within the square to start the fill
+  local fillStartPoint = Point{ x=squareStartX + 1, y=squareStartY + 1 }
+
+  -- Use the paint bucket tool to fill the square
+  app.useTool{
+    tool="paint_bucket",
+    color=fillColor,
+    points={ fillStartPoint },
+    cel=app.activeCel, -- Use the currently active cel
+    layer=app.activeLayer, -- Use the currently active layer
+    frame=app.activeFrame, -- Use the currently active frame
+  }
+end
+
 local function isoLine(x, y, len, color, direction)
   local step = direction == "upRight" and 1 or -1
   for i=0,len do
@@ -54,6 +75,8 @@ local function drawCube(x, y, z, color)
   isoLine(centerX, centerY, y, color, "upLeft") -- Middle Left
   isoLine(centerX, centerY + z, y, color, "upLeft") -- Bottom Left
   isoLine(centerX - 1, centerY + z, x, color, "upRight") -- Bottom Right
+
+  fillSquare()
 end
 
 local function newLayer(name)
