@@ -13,6 +13,7 @@ local Shapes = {
 }
 
 local selected_shape = Shapes.CUBE
+local leftMiddle = true
 
 local function drawStraightLine(x, y, len, color, direction)
   for i=1,len do
@@ -37,7 +38,9 @@ local function isoLine(x, y, len, color, direction)
       app.activeImage:putPixel(x-x2, y+i, color)
     elseif direction == "upRight" then
       app.activeImage:putPixel(x+x1, y-i, color)
+      -- if ((i ~= len) or (i > len)) then
       app.activeImage:putPixel(x+x2, y-i, color)
+      -- end
     elseif direction == "upLeft" then
       app.activeImage:putPixel(x-x1, y-i, color)
       app.activeImage:putPixel(x-x2, y-i, color)
@@ -48,12 +51,16 @@ end
 local function drawCube(x, y, z, color)
   local centerX = math.floor(app.activeSprite.width/2)
   local centerY = math.floor(app.activeSprite.height/2)
-  drawStraightLine(centerX, centerY, z, color, "vertical") --middle
+  local offset = leftMiddle and -1 or 0
+  drawStraightLine(centerX + offset, centerY, z, color, "vertical") --middle
   drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") --left
   drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") --right
-  isoLine(centerX, centerY, x, color, "upRight")
-  isoLine(centerX, centerY + z, y, color, "upLeft")
-  -- isoLine(x, y, z, color, "downLeft")
+  isoLine(centerX - 1, centerY, x, color, "upRight") -- top right
+  isoLine(centerX, centerY, x, color, "upLeft") -- top left
+
+
+  isoLine(centerX, centerY + z, y, color, "upLeft") -- bottom left
+  isoLine(centerX - 1, centerY + z, x, color, "upRight") -- bottom right
   -- isoLine(x, y, z, color, "upRight")
   -- isoLine(x, y, z, color, "upLeft")
 end
@@ -78,6 +85,10 @@ dlg:separator{ text="Shapes" }
 
 dlg:separator{ text="Colors:" }
     :color {id="color", label="Stroke:", color = app.fgColor}
+
+dlg:separator{ text="Actions" }
+    :radio {id="left", label="Middle Line: ", text="Left", selected=leftMiddle}
+    :radio {id="right", text="Right", selected=not leftMiddle}
 
 :button {id="submit", text="Add Shape",onclick=function()
           local data = dlg.data
