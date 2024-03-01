@@ -18,6 +18,7 @@ local centerY = math.floor(app.activeSprite.height/2)
 local selected_shape = Shapes.CUBE
 local leftMiddle = true
 local createdLayers = {}
+local offset = 0
 local data = {}
 
 local function drawStraightLine(x, y, len, color, direction)
@@ -33,7 +34,6 @@ local function drawStraightLine(x, y, len, color, direction)
   end
 end
 
-
 local function fillSquare(x, y, color)
   local fillPoint = Point{ x, y }
 
@@ -48,13 +48,9 @@ local function fillSquare(x, y, color)
 end
 
 local function colorCube(x, y, z)
-  local red = Color{ r=255, g=0, b=0 }
-  local green = Color{ r=0, g=255, b=0 }
-  local blue = Color{ r=0, g=0, b=255 }
-
-  fillSquare(centerX, centerY - 1, red) -- Top
-  fillSquare((centerX-y*2-1) + 1, (centerY-y) + 1, green) -- Left
-  fillSquare(centerX+x*2-1, centerY-x + 1, blue) -- Right
+  fillSquare(centerX, centerY - 1, data.topColor) -- Top
+  fillSquare((centerX-y*2-1) + 1, (centerY-y) + 1, data.frontColor) -- Left
+  fillSquare(centerX+x*2-1, centerY-x + 1, data.shadeColor) -- Right
 end
 
 local function isoLine(x, y, len, color, direction)
@@ -67,20 +63,23 @@ local function isoLine(x, y, len, color, direction)
 end
 
 local function drawCube(x, y, z, color)
-  local offset = leftMiddle and -1 or 0
+  offset = leftMiddle and -1 or 0
 
   --- Straight lines
-  drawStraightLine(centerX + offset, centerY, z, color, "vertical") -- Middle
+  drawStraightLine(centerX + offset, centerY, z, data.middleStrokeColor, "vertical") -- Middle
   drawStraightLine(centerX-y*2-1, centerY-y, z, color, "vertical") -- Left
   drawStraightLine(centerX+x*2, centerY-x, z, color, "vertical") -- Right
 
   --- Diagonal lines
+  isoLine(centerX - 1, centerY, x, data.middleStrokeColor, "upRight") -- Middle Right
+  isoLine(centerX, centerY, y, data.middleStrokeColor, "upLeft") -- Middle Left
   isoLine(centerX-y*2-1, centerY-y, x, color, "upRight") -- Top Left
   isoLine(centerX+x*2, centerY-x, y, color, "upLeft") -- Top Right
-  isoLine(centerX - 1, centerY, x, color, "upRight") -- Middle Right
-  isoLine(centerX, centerY, y, color, "upLeft") -- Middle Left
   isoLine(centerX, centerY + z, y, color, "upLeft") -- Bottom Left
   isoLine(centerX - 1, centerY + z, x, color, "upRight") -- Bottom Right
+
+  -- Highlight
+  app.activeImage:putPixel(centerX + offset, centerY, data.highlightColor)
 end
 
 local function newLayer(name)
@@ -110,7 +109,12 @@ dlg:separator{ text="Shapes" }
     :slider {id="zSize", label="Height:", min=3, max=maxSize.z, value=10}
 
 dlg:separator{ text="Colors:" }
-    :color {id="color", label="Stroke:", color = app.fgColor}
+  :color {id="strokeColor", label="Outside Stroke:", color = Color{ r=0, g=0, b=0 }} -- Black
+  :color {id="middleStrokeColor", label="Middle Stroke:", color = Color{ r=150, g=188, b=255 }} -- Navy
+  :color {id="topColor", label="Top:", color = Color{ r=99, g=155, b=255 }} -- Sky Blue
+  :color {id="shadeColor", label="Shade:", color = Color{ r=13, g=64, b=153 }} -- Steel Blue
+  :color {id="frontColor", label="Front:", color = Color{ r=20, g=95, b=230 }} -- Blue
+  :color {id="highlightColor", label="Highlight:", color = Color{ r=255, g=255, b=255 }} -- Blue
 
 dlg:separator{ text="Actions" }
     :radio {
@@ -143,8 +147,8 @@ dlg:separator{ text="Actions" }
           data = dlg.data
           app.transaction(function()
             newLayer("Cube("..data.xSize.." "..data.ySize.." "..data.zSize..")")
-            drawCube(data.xSize, data.ySize, data.zSize, data.color)
-            colorCube(data.xSize, data.ySize, data.zSize, data.color)
+            drawCube(data.xSize, data.ySize, data.zSize, data.strokeColor)
+            colorCube(data.xSize, data.ySize)
           end)
           app.refresh()
         end
