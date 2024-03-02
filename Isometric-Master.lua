@@ -1,3 +1,9 @@
+-- Version 0.1.0
+-- Created by: Callum Brezden
+-- Description: A script to create isometric shapes in Aseprite
+-- Github: github.com/brezden
+-- License: MIT
+
 local dlg = Dialog("Isometric Master")
 
 local maxSize = {
@@ -9,7 +15,7 @@ local maxSize = {
 local Shapes = {
   CUBE = "Cube",
   CIRCLE = "Circle",
-  RAMP = "Ramp"
+  STAIR = "Stair"
 }
 
 local centerX = math.floor(app.activeSprite.width/2)
@@ -101,11 +107,11 @@ local function undoLastLayerCreation()
 end
 
 dlg:separator{ text="Shapes" }
-    :button { id="cube", text="Cube", selected=true, onclick=function() selected_shape = Shapes.CUBE dlg:modify{id="cube", selected=true} dlg:modify{id="circle", selected=false} dlg:modify{id="ramp", selected=false} end }
-    :button { id="circle", text="Circle", selected=false, onclick=function() selected_shape = Shapes.CIRCLE dlg:modify{id="circle", selected=true} dlg:modify{id="cube", selected=false} dlg:modify{id="ramp", selected=false} end }
-    :button { id="ramp", text="Ramp", selected=false, onclick=function() selected_shape = Shapes.RAMP dlg:modify{id="ramp", selected=true} dlg:modify{id="circle", selected=false} dlg:modify{id="cube", selected=false} end }
+  :button { id="cube", text="Cube", selected=true, onclick=function() selected_shape = Shapes.CUBE dlg:modify{id="cube", selected=true} dlg:modify{id="circle", selected=false} dlg:modify{id="stair", selected=false} end }
+  :button { id="circle", text="Circle", selected=false, onclick=function() selected_shape = Shapes.CIRCLE dlg:modify{id="circle", selected=true} dlg:modify{id="cube", selected=false} dlg:modify{id="stair", selected=false} end }
+  :button { id="stair", text="Stair", selected=false, onclick=function() selected_shape = Shapes.STAIR dlg:modify{id="stair", selected=true} dlg:modify{id="circle", selected=false} dlg:modify{id="cube", selected=false} end }
 
-dlg:separator{ text="Shapes" }
+dlg:separator{ text="Dimensions" }
     :slider {id="ySize", label="Left:", min=1, max=maxSize.y, value=5}
     :slider {id="xSize", label="Right:", min=1, max=maxSize.x, value=5}
     :slider {id="zSize", label="Height:", min=3, max=maxSize.z, value=10}
@@ -116,7 +122,11 @@ dlg:separator{ text="Colors:" }
   :color {id="frontColor", label="Front:", color = Color{ r=20, g=95, b=230 }} -- Blue
 
 dlg:separator{ text="Strokes:" }
-  :color {id="strokeColor", label="Outside Stroke:", color = Color{ r=0, g=0, b=0 }} -- Black
+  :color {
+  id="strokeColor",
+  label="Stroke:",
+  color = Color{ r=0, g=0, b=0 } -- Black
+  }
   :color {
   id="middleStrokeColor",
   label="Middle Stroke:",
@@ -199,15 +209,24 @@ dlg:separator{ text="Actions" }
   end
 }
 
-:button {id="submit", text="Add Shape",onclick=function()
-          data = dlg.data
-          app.transaction(function()
-            newLayer("Cube("..data.xSize.." "..data.ySize.." "..data.zSize..")")
-            drawCube(data.xSize, data.ySize, data.zSize, data.strokeColor)
-            colorCube(data.xSize, data.ySize)
-          end)
-          app.refresh()
-        end
+:button {
+  id="submit",
+  text="Add Shape",
+  onclick=function()
+    data = dlg.data
+    app.transaction(function()
+      if selected_shape == Shapes.CUBE then
+        newLayer("Cube("..data.xSize.." "..data.ySize.." "..data.zSize..")")
+        drawCube(data.xSize, data.ySize, data.zSize, data.strokeColor)
+        colorCube(data.xSize, data.ySize)
+      elseif selected_shape == Shapes.STAIR then
+        print("Stair not implemented yet.")
+      elseif selected_shape == Shapes.CIRCLE then
+        print("Circle not implemented yet.")
+      end
+    end)
+    app.refresh()
+  end
 }
 
 dlg:show()
